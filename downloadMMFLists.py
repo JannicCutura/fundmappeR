@@ -1,12 +1,20 @@
 import os
-import boto3
+import json
 import pandas as pd
-import csv
-s3 = boto3.resource('s3')
-bucket = s3.Bucket("fundmapper")
+import boto3
+
+s3_client = boto3.client('s3')
+
 
 def lambda_handler(event, context):
+    # TODO implement
+
     df = pd.read_csv("https://www.sec.gov/files/investment/data/other/money-market-fund-information/mmf-2020-11.csv")
-    df.to_csv('/tmp/test.csv')
-    bucket.upload_file('/tmp/test.csv','mmf-2020-11.csv' )
-    return "Hello"
+    df.to_csv('/tmp/mmf-2020-11.csv')
+    s3_client.upload_file('/tmp/mmf-2020-11.csv', "fundmapper", "01-MMFLists/mmf-2020-11.csv")
+
+    # print(event['key1'])
+    return "Success"
+
+
+
