@@ -89,3 +89,22 @@ for (series_id in series_ids) {
   
 }
 
+
+
+
+
+#create a list of series_ids
+mmflists = get_bucket(bucket = "fundmapper", "01-MMFLists/")
+mmflists = map_df(mmflists, ~ map_df(.x, ~ replace(.x, is.null(.x), NA)), .id = "my.var") %>%
+  select(Key) %>%
+  filter(str_detect(Key, ".csv"))
+series_ids= list()
+for (row in 1:nrow(mmflists))   {
+  key = as.character(mmflists[row,"Key"])
+  print(key)
+  tmp = as.character(unique(s3.read_csv(paste0("s3://fundmapper/", key, sep=""), sep=";")$series_id))
+  series_ids = union(series_ids, tmp)
+}
+series_ids = as.character(series_ids)
+s3write_using(series_ids, bucket = "fundmapper", object = "series_ids.csv", FUN = utils::write.csv)
+
