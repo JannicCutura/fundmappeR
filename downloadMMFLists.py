@@ -1,24 +1,24 @@
-import os
-import json
 import pandas as pd
 import boto3
 from datetime import date
-
 s3_client = boto3.client('s3')
 s3 = boto3.resource('s3')
-
 bucket = "fundmapper"
-prefix = "/01-MMFLists/"
-
-
+prefix = "01-MMFLists/"
 def lambda_handler(event, context):
     # TODO implement
 
     today = date.today()
     mdate = today.strftime("%Y-%m")
+    mdate = "2020-11"
     bucket = s3.Bucket('fundmapper')
-    key = '01-MMFLists/'
-    objs = list(bucket.objects.filter(Prefix=key))
+    objs = list(bucket.objects.filter(Prefix=prefix))
+
+    for obj in objs:
+        if obj.key == prefix + "mmf-" + mdate + ".csv":
+            return "File already present"
+
+    print("Not stored yet; try to download")
 
     try:
         # download new file and store to s3
@@ -42,4 +42,4 @@ def lambda_handler(event, context):
     except:
         print("None found")
 
-    return "Success " + len(objs)
+    return "Success"
