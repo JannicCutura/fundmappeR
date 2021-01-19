@@ -12,11 +12,9 @@ prefix = "01-MMFLists/"
 
 
 def lambda_handler(event, context):
-    # TODO implement
-
     today = date.today()
     mdate = today.strftime("%Y-%m")
-    mdate = "2020-11"
+
     bucket = s3.Bucket('fundmapper')
     key = '01-MMFLists/'
     objs = list(bucket.objects.filter(Prefix=key))
@@ -24,7 +22,6 @@ def lambda_handler(event, context):
     for obj in objs:
         if obj.key == prefix + "mmf-" + mdate + ".csv":
             return "File already present"
-
     print("Not stored yet; try to download")
 
     try:
@@ -35,6 +32,5 @@ def lambda_handler(event, context):
         # TO-DO: add notification
         return "Success; uploaded new file"
     except:
-
         return "Success; None found"
 
