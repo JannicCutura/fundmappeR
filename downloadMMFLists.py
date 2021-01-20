@@ -13,7 +13,6 @@ prefix = "01-MMFLists/"
 
 
 def lambda_handler(event, context):
-    # 
     today = date.today()
     mdate = today.strftime("%Y-%m")
     #mdate = "2020-11"
