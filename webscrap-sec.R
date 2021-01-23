@@ -1,7 +1,8 @@
 rm(list=ls()) # clear env
 cat('\014')
-libaries =c('dplyr','tidyverse',"edgarWebR","aws.s3","aws.ec2metadata","RStudioAMI","stringr")  # define libraries
+libaries =c('dplyr','tidyverse',"edgarWebR","aws.s3","aws.ec2metadata","aws.dynamodb","RStudioAMI","stringr")  # define libraries
 lapply(libaries, require, character.only=TRUE)
+svc <- paws::dynamodb(config = list(region = "eu-central-1"))
 
 # wrapper to read csv from S3
 s3.read_csv <- function(s3_path, sep=",", row.names= NULL) {
@@ -15,6 +16,13 @@ s3.read_csv <- function(s3_path, sep=",", row.names= NULL) {
 series_ids= s3.read_csv("s3://fundmapper/series_ids.csv",  row.names=NULL, sep = ",") 
 series_ids = as.character(series_ids$series_ids)
 
+
+
+
+
+
+
+## get last 5 months
 for (series_id in series_ids) {
   year = as.numeric(substr(Sys.time(),1,4))
   print(paste0("Parsing year ", year, sep=""))
@@ -25,12 +33,13 @@ for (series_id in series_ids) {
            filing_year = substr(filing_date,1,4),
            filing_month= substr(filing_date,6,7)) %>%
     group_by(filing_year, filing_month) %>%
-    top_n(1,filing_date) %>% head(5)
+    top_n(1,filing_date) %>% head(5) %>%
+    mutate(url = str_replace(href,"-index.htm",".txt"))
   
   
   for (row in 1:nrow(filings))   {
     # prepare file identifier
-    url = filings$href[row]
+    url = filings$url[row]
     filing_date = filings$filing_date[row]
     
     if (!object_exists(bucket = "fundmapper", object =  paste0("02-RawNMFPs/",series_id,"/",filing_date,"-",series_id,".txt"))) {
@@ -49,11 +58,10 @@ for (series_id in series_ids) {
 
 
 
-
+## get legacy documents
 start_time <- Sys.time()
 counter = 1
-## get legacy documents
-for (series_id in series_ids) {
+for (series_id in series_ids[1]) {
   print(paste0("This is for fund (", series_id,"), ", counter, " of ", length(series_ids),  sep=""))
   counter = counter + 1 
   for (year in seq(2011,2020,1)) {
@@ -67,11 +75,12 @@ for (series_id in series_ids) {
                filing_month= substr(filing_date,6,7)) %>%
         filter(filing_year == as.character(year)) %>%
         group_by(filing_year, filing_month) %>%
-        top_n(1,filing_date) 
+        top_n(1,filing_date) %>%
+        mutate(url = str_replace(href,"-index.htm",".txt"))  
       
       for (row in 1:nrow(filings))   {
         # prepare file identifier
-        url = filings$href[row]
+        url = filings$url[row]
         filing_date = filings$filing_date[row]
         
         # download file and save locally 
@@ -82,6 +91,18 @@ for (series_id in series_ids) {
         
         # clean up
         file.remove("/home/rstudio/tmp.txt")
+        
+        svc$put_item(
+          Item = list(
+            series_id = list(S = series_id),
+            date = list(N = 202006),
+            downloaded = list(N=1),
+            parsed = list(N=0)
+          ),
+          TableName = "fundmapper"
+        )
+        
+        
       }
       rm(filings)
     }, error=function(e){})
