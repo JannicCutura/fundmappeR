@@ -25,7 +25,7 @@ def lambda_handler(event, context):
 
     # store temporarily
     s3_client.download_file(bucket, key, "/tmp/" + series_id + "_" + filing + ".txt")
-
+    s3.Object(bucket, key).delete()
     # read
     filing = open("/tmp/" + series_id + "_" + filing + ".txt", 'r').read()
     filing = filing.replace(":", "")
@@ -37,6 +37,8 @@ def lambda_handler(event, context):
     print("convert")
     if filing_type in ["N-MFP", "N-MFP/A"]:
         series_df, class_df, holdings, all_collateral = mnfp_2_data(filing)
+        series_df, class_df, holdings, all_collateral = nmfp_rename_vars(filing_type, series_df, class_df, holdings,
+                                                                         all_collateral)
 
     if filing_type in ["N-MFP1", "N-MFP1/A"]:
         series_df, class_df, holdings, all_collateral = mnfp1_2_data(filing)
