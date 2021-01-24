@@ -44,10 +44,15 @@ def lambda_handler(event, context):
     if filing_type in ["N-MFP2", "N-MFP2/A"]:
         series_df, class_df, holdings, all_collateral = mnfp2_2_data(filing)
 
-    series_df['date'] = filing_date
-    class_df['date'] = filing_date
-    holdings['date'] = filing_date
-    all_collateral['date'] = filing_date
+    series_df['date'], class_df['date'], holdings['date'], all_collateral[
+        'date'] = filing_date, filing_date, filing_date, filing_date
+    series_df['filing_type'], class_df['filing_type'], holdings['filing_type'], all_collateral[
+        'filing_type'] = filing_type, filing_type, filing_type, filing_type,
+
+    series_df = series_df[['date'] + [col for col in series_df.columns if col != 'date']]
+    class_df = class_df[['date'] + [col for col in class_df.columns if col != 'date']]
+    holdings = holdings[['date'] + [col for col in holdings.columns if col != 'date']]
+    all_collateral = all_collateral[['date'] + [col for col in all_collateral.columns if col != 'date']]
 
     series_df.to_csv("/tmp/series_" + series_id + "_" + str(filing_date) + ".csv")
     s3_client.upload_file("/tmp/series_" + series_id + "_" + str(filing_date) + ".csv", "fundmapper",
