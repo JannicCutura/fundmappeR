@@ -1,4 +1,4 @@
-def npfp_rename_vars(filing_type, series_df, class_df, holdings, all_collateral):
+def nmfp_rename_vars(filing_type, series_df, class_df, holdings, all_collateral):
     '''
     Returns inputs with renamed columns for N-MFP type documents
 
@@ -27,14 +27,15 @@ def npfp_rename_vars(filing_type, series_df, class_df, holdings, all_collateral)
                      'MoneyMarketSevenDayYield': 'sevenDayGrossYield'
                      }, inplace=True)
 
-        class_df.rename(columns={'classId': 'classesId',
-                                 'minInitialInvestment': 'minInitialInvestment',
-                                 'netAssetsOfClass': 'netAssetsOfClass',
-                                 'netAssetValuePerShare': 'netAssetPerShare',
-                                 'sevenDayNetYield': 'sevenDayNetYield',
-                                 'grossSubscriptionsForMonthEnded': 'totalForTheMonthReported_weeklyGrossSubscriptions',
-                                 'grossRedemptionsForMonthEnded': 'totalForTheMonthReported_weeklyGrossRedemptions'},
-                        inplace=True)
+        class_df.rename(
+            columns={'classId': 'classesId',
+                     'minInitialInvestment': 'minInitialInvestment',
+                     'netAssetsOfClass': 'netAssetsOfClass',
+                     'netAssetValuePerShare': 'netAssetPerShare',
+                     'sevenDayNetYield': 'sevenDayNetYield',
+                     'grossSubscriptionsForMonthEnded': 'totalForTheMonthReported_weeklyGrossSubscriptions',
+                     'grossRedemptionsForMonthEnded': 'totalForTheMonthReported_weeklyGrossRedemptions'},
+            inplace=True)
 
         holdings.rename(
             columns={'AvailableForSaleSecuritiesAmortizedCost': 'AvailableForSaleSecuritiesAmortizedCost',
@@ -53,15 +54,18 @@ def npfp_rename_vars(filing_type, series_df, class_df, holdings, all_collateral)
                      'InvestmentTypeDomain': 'InvestmentTypeDomain',
                      'InvestmentMaturityDate': 'investmentMaturityDateWAM',
                      'valueOfSecurityExcludingValueOfCapitalSupportAgreement': 'excludingValueOfAnySponsorSupport',
-                     "InvestmentOwnedAtFairValue": 'includingValueOfAnySponsorSupport'}, inplace=True)
+                     "InvestmentOwnedAtFairValue": 'includingValueOfAnySponsorSupport'},
+            inplace=True)
 
         all_collateral.rename(
             columns={'issuer_number': 'issuer_number',
                      'InvestmentIssuer': 'nameOfCollateralIssuer',
                      'InvestmentMaturityDate': 'maturityDate',
                      'CR': 'couponOrYield',
-                     'InvestmentTypeDomain': 'ctgryInvestmentsRprsntsCollateral'}, inplace=True)
+                     'InvestmentTypeDomain': 'ctgryInvestmentsRprsntsCollateral'},
+            inplace=True)
 
     if 'enhancementsList' in holdings.columns:
         holdings.drop(['enhancementsList'], axis=1, inplace=True)
 
+    return series_df, class_df, holdings, all_collateral
