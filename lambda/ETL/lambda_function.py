@@ -48,38 +48,66 @@ def lambda_handler(event, context):
     if filing_type in ["N-MFP2", "N-MFP2/A"]:
         series_df, class_df, holdings, all_collateral = mnfp2_2_data(filing)
 
+    # drop , from all fields, GLUE doesn't get it seems...
+    series_df.replace({",": " "}, regex=True, inplace=True)
+    class_df.replace({",": " "}, regex=True, inplace=True)
+    holdings.replace({",": " "}, regex=True, inplace=True)
+    all_collateral.replace({",": " "}, regex=True, inplace=True)
+
+    # add date
     series_df['date'], class_df['date'], holdings['date'], all_collateral[
         'date'] = filing_date, filing_date, filing_date, filing_date
+
+    # add filing type
     series_df['filing_type'], class_df['filing_type'], holdings['filing_type'], all_collateral[
         'filing_type'] = filing_type, filing_type, filing_type, filing_type,
 
-    series_df = series_df[['date'] + [col for col in series_df.columns if col != 'date']]
-    class_df = class_df[['date'] + [col for col in class_df.columns if col != 'date']]
-    holdings = holdings[['date'] + [col for col in holdings.columns if col != 'date']]
-    all_collateral = all_collateral[['date'] + [col for col in all_collateral.columns if col != 'date']]
+    # reorder columns
 
-    series_df = series_df[['filing_type'] + [col for col in series_df.columns if col != 'filing_type']]
-    class_df = class_df[['filing_type'] + [col for col in class_df.columns if col != 'filing_type']]
-    holdings = holdings[['filing_type'] + [col for col in holdings.columns if col != 'filing_type']]
-    all_collateral = all_collateral[['filing_type'] + [col for col in all_collateral.columns if col != 'filing_type']]
+    holdings_data = pd.DataFrame(columns=["filing_type", "date", "issuer_number", "nameOfIssuer", "titleOfIssuer",
+                                          "InvestmentIdentifier", "cik", "InvestmentTypeDomain", "investmentCategory",
+                                          "isFundTreatingAsAcquisitionUnderlyingSecurities",
+                                          "repurchaseAgreementList", "rating", "investmentMaturityDateWAM",
+                                          "finalLegalInvestmentMaturityDate", "securityDemandFeatureFlag",
+                                          "securityGuaranteeFlag", "securityEnhancementsFlag",
+                                          "InvestmentOwnedBalancePrincipalAmount",
+                                          "AvailableForSaleSecuritiesAmortizedCost",
+                                          "percentageOfMoneyMarketFundNetAssets", "illiquidSecurityFlag",
+                                          "includingValueOfAnySponsorSupport", "excludingValueOfAnySponsorSupport",
+                                          "CUSIPMember", "guarantorList", "demandFeatureIssuerList"])
+    holdings_data = holdings_data.append(holdings)
+    del holdings
+
+    collateral_data = pd.DataFrame(
+        columns=['filing_type', 'date', 'issuer_number', 'nameOfCollateralIssuer', 'LEIID', 'maturityDate',
+                 'couponOrYield',
+                 'principalAmountToTheNearestCent', 'valueOfCollateralToTheNearestCent',
+                 'ctgryInvestmentsRprsntsCollateral'])
+    collateral_data = collateral_data.append(all_collateral)
+    del all_collateral
+
+    # date,issuer_number,nameOfIssuer,titleOfIssuer,CUSIPMember,LEIID,ISINId,otherUniqueId,investmentCategory,securityEligibilityFlag,NRSRO,investmentMaturityDateWAM,investmentMaturityDateWAL,finalLegalInvestmentMaturityDate,securityDemandFeatureFlag,securityGuaranteeFlag,securityEnhancementsFlag,yieldOfTheSecurityAsOfReportingDate,includingValueOfAnySponsorSupport,excludingValueOfAnySponsorSupport,percentageOfMoneyMarketFundNetAssets,securityCategorizedAtLevel3Flag,dailyLiquidAssetSecurityFlag,weeklyLiquidAssetSecurityFlag,illiquidSecurityFlag,cik,fundAcqstnUndrlyngSecurityFlag,repurchaseAgreement
 
     file_format = ".csv"
-    series_df.to_csv("/tmp/series_" + series_id + "_" + str(filing_date) + file_format)
-    s3_client.upload_file("/tmp/series_" + series_id + "_" + str(filing_date) + ".parquet", "fundmapper",
+    header = True
+    series_df.to_csv("/tmp/series_" + series_id + "_" + str(filing_date) + file_format, index=False, header=header)
+    s3_client.upload_file("/tmp/series_" + series_id + "_" + str(filing_date) + file_format, "fundmapper",
                           "03-ParsedRecords/series_data/" + series_id + "/" + series_id + "_" + str(
                               filing_date) + file_format)
 
-    class_df.to_csv("/tmp/class_" + series_id + "_" + str(filing_date) + file_format)
+    class_df.to_csv("/tmp/class_" + series_id + "_" + str(filing_date) + file_format, index=False, header=header)
     s3_client.upload_file("/tmp/class_" + series_id + "_" + str(filing_date) + file_format, "fundmapper",
                           "03-ParsedRecords/class_data/" + series_id + "/" + series_id + "_" + str(
                               filing_date) + file_format)
 
-    holdings.to_csv("/tmp/holdings_" + series_id + "_" + str(filing_date) + file_format)
+    holdings_data.to_csv("/tmp/holdings_" + series_id + "_" + str(filing_date) + file_format, index=False,
+                         header=header)
     s3_client.upload_file("/tmp/holdings_" + series_id + "_" + str(filing_date) + file_format, "fundmapper",
                           "03-ParsedRecords/holdings_data/" + series_id + "/" + series_id + "_" + str(
                               filing_date) + file_format)
 
-    all_collateral.to_csv("/tmp/collateral_" + series_id + "_" + str(filing_date) + file_format)
+    collateral_data.to_csv("/tmp/collateral_" + series_id + "_" + str(filing_date) + file_format, index=False,
+                           header=header)
     s3_client.upload_file("/tmp/collateral_" + series_id + "_" + str(filing_date) + file_format, "fundmapper",
                           "03-ParsedRecords/collateral_data/" + series_id + "/" + series_id + "_" + str(
                               filing_date) + file_format)
