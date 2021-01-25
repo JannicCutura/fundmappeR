@@ -86,8 +86,6 @@ def lambda_handler(event, context):
     collateral_data = collateral_data.append(all_collateral)
     del all_collateral
 
-    # date,issuer_number,nameOfIssuer,titleOfIssuer,CUSIPMember,LEIID,ISINId,otherUniqueId,investmentCategory,securityEligibilityFlag,NRSRO,investmentMaturityDateWAM,investmentMaturityDateWAL,finalLegalInvestmentMaturityDate,securityDemandFeatureFlag,securityGuaranteeFlag,securityEnhancementsFlag,yieldOfTheSecurityAsOfReportingDate,includingValueOfAnySponsorSupport,excludingValueOfAnySponsorSupport,percentageOfMoneyMarketFundNetAssets,securityCategorizedAtLevel3Flag,dailyLiquidAssetSecurityFlag,weeklyLiquidAssetSecurityFlag,illiquidSecurityFlag,cik,fundAcqstnUndrlyngSecurityFlag,repurchaseAgreement
-
     file_format = ".csv"
     header = True
     series_df.to_csv("/tmp/series_" + series_id + "_" + str(filing_date) + file_format, index=False, header=header)
@@ -111,5 +109,6 @@ def lambda_handler(event, context):
     s3_client.upload_file("/tmp/collateral_" + series_id + "_" + str(filing_date) + file_format, "fundmapper",
                           "03-ParsedRecords/collateral_data/" + series_id + "/" + series_id + "_" + str(
                               filing_date) + file_format)
+
 
     return "Success"
