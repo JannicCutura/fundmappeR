@@ -8,7 +8,7 @@ of money market funds (MMF). MMfs have been at the center of the great financial
 debt crisis ([Corre et. al., 2012][correa2012]) and recently experienced some turmoil during 
 the Covid-19 pandemic ([Reuters, 2020][reuters2020]) in March 2021. 
 
-![some desciption](../master/docs/fundmapper.png "Title") 
+![some desciption](https://github.com/JannicCutura/fundmappeR/blob/main/docs/fundmapper.png) 
 
 
 Research on MMFs received a lot
