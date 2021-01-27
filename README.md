@@ -6,10 +6,22 @@ of money market funds (MMF). MMfs have been at the center of the great financial
 ([Chernenko and Sunderam, 2014] [Chernenko2014];
 [Gorton and Metrick, 2012][Gorton2012]), the sovereign
 debt crisis ([Corre et. al., 2012][correa2012]) and recently experienced some turmoil during 
-the Covid-19 pandemic ([Reuters, 2020][reuters2020]) in March 2021.
-It parses the [SEC's website](https://www.sec.gov/open/datasets-mmf.html) 
-for money market fund portfolio data and provides a table with all filings in a convenient format. 
+the Covid-19 pandemic ([Reuters, 2020][reuters2020]) in March 2021. 
+
+![some desciption](/docs/architecture.pdf "some discription") 
+
+
+Research on MMFs received a lot
+of attention, yet the barrier to enter the field is quite high since there is no off the shelve data available. 
+The [SEC](https://www.sec.gov/) is collecting and publishing MMFs portfolios, but those are stored on 
+their servers in an inconvenient format. `fundmappeR` parses the 
+[SEC's website](https://www.sec.gov/open/datasets-mmf.html) 
+for money market fund portfolio data and provides the data in an easily accessible format. 
 The table is updated every month and can be accessed here. 
+
+## Usage
+This project is implemented using Python and R and runs on AWS, leveraging several of its proprietary
+technologies. You can rebuild it using the codes published in this repo or you can access the final tables here. 
 
 
 [Chernenko2014]: <https://academic.oup.com/rfs/article-abstract/27/6/1717/1598733?redirectedFrom=fulltext> "Mytitle"
