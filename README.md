@@ -23,10 +23,10 @@ The table is updated every month and can be accessed here.
 This project is implemented using Python and R and runs on AWS, leveraging several of its proprietary
 technologies. You can rebuild it using the codes published in this repo or you can access the final tables here.
 There are four tables available:
-- Class table
-- Series table
-- Holdings table
-- Collateral table 
+- *Class table*:
+- *Series table*:
+- *Holdings table*:
+- *Collateral table*: 
 
 ## Architecture
 
