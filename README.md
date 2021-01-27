@@ -1,8 +1,8 @@
 # fundmappeR
 [![version](https://img.shields.io/badge/version-1.0.0-success.svg)](#)
 
-##About 
 
+## About 
 This repo contains codes to build the `fundmappeR` project, an open source tool that webscraps portfolios
 of money market funds (MMF). MMfs have been at the center of the great financial crisis
 ([Chernenko and Sunderam, 2014][Chernenko2014];
