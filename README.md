@@ -2,6 +2,7 @@
 [![version](https://img.shields.io/badge/version-1.0.0-success.svg)](#)
 
 ##About 
+
 This repo contains codes to build the `fundmappeR` project, an open source tool that webscraps portfolios
 of money market funds (MMF). MMfs have been at the center of the great financial crisis
 ([Chernenko and Sunderam, 2014][Chernenko2014];
@@ -18,6 +19,7 @@ for money market fund portfolio data and provides the data in an easily accessib
 The table is updated every month and can be accessed here. 
 
 ## Usage
+
 This project is implemented using Python and R and runs on AWS, leveraging several of its proprietary
 technologies. You can rebuild it using the codes published in this repo or you can access the final tables here. 
 
