@@ -4,7 +4,7 @@
 ##About 
 This repo contains codes to build the `fundmappeR` project, an open source tool that webscraps portfolios
 of money market funds (MMF). MMfs have been at the center of the great financial crisis
-([Chernenko and Sunderam, 2014] [Chernenko2014];
+([Chernenko and Sunderam, 2014][Chernenko2014];
 [Gorton and Metrick, 2012][Gorton2012]), the sovereign
 debt crisis ([Corre et. al., 2012][correa2012]) and recently experienced some turmoil during 
 the Covid-19 pandemic ([Reuters, 2020][reuters2020]) in March 2021. 
