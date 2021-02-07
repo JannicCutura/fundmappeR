@@ -26,7 +26,7 @@ There are four tables available:
 - **Class table**: This table contains data on the individual fund share class. `class_id` and `date` act as primary key.
 - **Series table**: This table contains data on the individual fund (i.e. a series). `series_id` and `date` act as primary key.
 - **Holdings table**: This table contains data on the individual holdings. 
-- **Collateral table**: This table conatins data on the collateral posted for secured items. 
+- **Collateral table**: This table contains data on the collateral posted for secured items. 
 
 ## Architecture
 
