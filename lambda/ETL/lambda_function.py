@@ -112,3 +112,19 @@ def lambda_handler(event, context):
 
 
     return "Success"
+
+
+
+a = ["classesid","mininitialinvestment","netassetsofclass","numberofsharesoutstanding",
+    "netassetpershare","fridayweek1_weeklygrosssubscriptions","fridayweek1_weeklygrossredemptions","fridayweek2_weeklygrosssubscriptions",
+    "fridayweek2_weeklygrossredemptions","fridayweek3_weeklygrosssubscriptions","fridayweek3_weeklygrossredemptions","fridayweek4_weeklygrosssubscriptions",
+    "fridayweek4_weeklygrossredemptions","totalforthemonthreported_weeklygrosssubscriptions","totalforthemonthreported_weeklygrossredemptions",
+    "sevendaynetyield","personpayforfundflag","nameofpersondescexpensepay","date","filing_type","fridayweek5_weeklygrosssubscriptions",
+    "fridayweek5_weeklygrossredemptions","netshareholderflowactivityformonthended","netassetvaluepershareincludingcapitalsupportagreement",
+    "netassetvaluepershareexcludingcapitalsupportagreement"]
+
+import pandas as pd
+import numpy as np
+df = pd.DataFrame(data={"a":[1,2, np.nan],"b":[3,"hello", np.nan]})
+df.fillna(0).astype(float)
+df.map(str)
