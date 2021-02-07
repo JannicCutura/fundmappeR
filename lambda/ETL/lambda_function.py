@@ -195,14 +195,14 @@ def lambda_handler(event, context):
                               "03-ParsedRecords/class_data/" + series_id + "/" + series_id + "_" + str(
                                   filing_date) + file_format)
 
-    if holdings_data[0] >= 1:
+    if holdings_data.shape[0] >= 1:
         holdings_data.to_csv("/tmp/holdings_" + series_id + "_" + str(filing_date) + file_format, index=False,
                              header=header)
         s3_client.upload_file("/tmp/holdings_" + series_id + "_" + str(filing_date) + file_format, "fundmapper",
                               "03-ParsedRecords/holdings_data/" + series_id + "/" + series_id + "_" + str(
                                   filing_date) + file_format)
 
-    if collateral_data[0] >= 1:
+    if collateral_data.shape[0] >= 1:
         collateral_data.to_csv("/tmp/collateral_" + series_id + "_" + str(filing_date) + file_format, index=False,
                                header=header)
         s3_client.upload_file("/tmp/collateral_" + series_id + "_" + str(filing_date) + file_format, "fundmapper",
@@ -210,7 +210,3 @@ def lambda_handler(event, context):
                                   filing_date) + file_format)
 
     return "Success"
-
-
-
-
