@@ -5,9 +5,9 @@ import csv
 import pandas as pd
 result = s3.get_bucket_acl(Bucket='fundmapper')
 print(result)
-series_id = "S000008702"
-filename = "2020-12-04-S000008702.txt"
-s3.download_file('fundmapper', f'02-RawNMFPs/S000008702/{filename}', f'{filename}')
+series_id = "S000000623"
+filename = "2011-01-07-S000000623.txt"
+s3.download_file('fundmapper', f'02-RawNMFPs/{series_id}/{filename}', f'{filename}')
 
 filing = open(f"{filename}", 'r').read()
 filing = filing.replace(":", "")

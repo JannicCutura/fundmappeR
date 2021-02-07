@@ -21,7 +21,7 @@ def lambda_handler(event, context):
     bucket = record['s3']['bucket']['name']
     key = unquote_plus(record['s3']['object']['key'])
     # bucket = "fundmapper"
-    # key = "02-RawNMFPs/S000008702/2020-12-04-S000008702.txt"
+    # key = "02-RawNMFPs/S000000623/2011-01-07-S000000623.txt"
 
     prefix, series_id, filing = key.split("/")
     print(bucket)
@@ -95,7 +95,9 @@ def lambda_handler(event, context):
                               'principalAmountToTheNearestCent',
                               'maturityDate', 'series_id', 'nameOfCollateralIssuer']
     collateral_int_columns = ['issuer_number', 'date']
-    collateral_float_columns = ['couponOrYield', 'valueOfCollateralToTheNearestCent']
+    collateral_float_columns = ['couponOrYield', 'valueOfCollateralToTheNearestCent',
+                                'AssetsSoldUnderAgreementsToRepurchaseCarryingAmounts',
+                                'CashCollateralForBorrowedSecurities']
     collateral_columns = collateral_str_columns + collateral_int_columns + collateral_float_columns
 
     collateral_data = pd.DataFrame(columns=collateral_columns)
@@ -178,6 +180,11 @@ def lambda_handler(event, context):
     series_data = series_data[series_columns]
     collateral_data = collateral_data[collateral_columns]
     holdings_data = holdings_data[holdings_columns]
+
+    # add variables, i.e. colaece
+    collateral_data["CollateralValue"] = collateral_data['CashCollateralForBorrowedSecurities'].combine_first(
+        collateral_data['valueOfCollateralToTheNearestCent'])
+    holdings_dara["Type"] = holdings_data.InvestmentTypeDomain.combine_first(holdings_data.investmentCategory)
 
     file_format = ".csv"
     header = True
