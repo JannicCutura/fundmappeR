@@ -2,7 +2,6 @@ from __future__ import print_function
 import pandas as pd
 import boto3
 from datetime import date
-import base64
 import datetime
 
 s3_client = boto3.client('s3')
