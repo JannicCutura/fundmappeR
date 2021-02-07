@@ -20,7 +20,7 @@ def nmfp_rename_vars(filing_type, series_df, class_df, holdings, all_collateral)
                      'moneyMarketFundCategory': 'InvestmentTypeDomain',
                      'dollarWeightedAveragePortfolioMaturity': 'averagePortfolioMaturity',
                      'dollarWeightedAverageLifeMaturity': 'averageLifeMaturity',
-                     'AvailableForSaleSecuritiesAmortizedCost': '',
+                     'AvailableForSaleSecuritiesAmortizedCost': 'AvailableForSaleSecuritiesAmortizedCost',
                      'OtherAssets': 'totalValueOtherAssets',
                      'Liabilities': 'totalValueLiabilities',
                      'AssetsNet': 'netAssetOfSeries',
