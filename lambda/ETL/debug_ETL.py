@@ -110,7 +110,7 @@ series_data = pd.DataFrame(columns=series_columns)
 series_data = series_data.append(series_df)
 del series_df
 
-class_str_columns = ['series_id', 'personPayForFundFlag', 'filing_type', 'nameOfPersonDescExpensePay']
+class_str_columns = ['series_id', 'classesId','personPayForFundFlag', 'filing_type', 'nameOfPersonDescExpensePay']
 class_int_columns = ['date']
 class_float_columns = ['fridayWeek1_weeklyGrossRedemptions', 'totalForTheMonthReported_weeklyGrossSubscriptions',
                        'fridayWeek4_weeklyGrossRedemptions', 'netShareholderFlowActivityForMonthEnded',
@@ -119,7 +119,7 @@ class_float_columns = ['fridayWeek1_weeklyGrossRedemptions', 'totalForTheMonthRe
                        'fridayWeek1_weeklyGrossSubscriptions', 'fridayWeek2_weeklyGrossRedemptions',
                        'fridayWeek3_weeklyGrossRedemptions', 'netAssetPerShare', 'numberOfSharesOutstanding',
                        'netAssetValuePerShareExcludingCapitalSupportAgreement', 'fridayWeek4_weeklyGrossSubscriptions',
-                       'fridayWeek3_weeklyGrossSubscriptions', 'classesId', 'fridayWeek2_weeklyGrossSubscriptions',
+                       'fridayWeek3_weeklyGrossSubscriptions',  'fridayWeek2_weeklyGrossSubscriptions',
                        'sevenDayNetYield']
 class_columns = class_str_columns + class_int_columns + class_float_columns
 
