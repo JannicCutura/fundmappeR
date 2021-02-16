@@ -22,15 +22,20 @@ The table is updated every month and can be accessed here.
 
 This project is implemented using Python and R and runs on AWS, leveraging several of its proprietary
 technologies. You can rebuild it using the codes published in this repo or you can access the final tables here.
-There are four tables available:
+There are four tables available, stored year by year:
 - **Class table**: This table contains data on the individual fund share class. `class_id` and `date` act as primary key.
 - **Series table**: This table contains data on the individual fund (i.e. a series). `series_id` and `date` act as primary key.
 - **Holdings table**: This table contains data on the individual holdings. 
 - **Collateral table**: This table contains data on the collateral posted for secured items. 
 
 ## Architecture
-
-![some desciption](https://github.com/JannicCutura/fundmappeR/blob/main/docs/fundmapper.png) 
+![This project is build on Amazon Web Services (AWS). AWS made it easy to automate the downloading, parsing and cleaning of the data. 
+The data pipeline is run every month to fetch and add the latest data. In a first step, a lambda function checks the SEC website for new funds
+and sends a notification if new funds are found. Next, an EC2 instance runs R code that downloads the raw report to S3. Any S3 object put serves
+as an event trigger for lambda, which picks up the raw filing, parses its XML structure and creates four tables for a given fund-month report. 
+These are stored in on S3, partitioned by year. AWS Glue crawler populates the data catalog, used for Adhoc queries in Athena. A Glue ETL 
+job runs a pyspark script which transform the individial csv files into parquet tables and stores them in a public S3 bucket to make
+the data available to the user. ](https://github.com/JannicCutura/fundmappeR/blob/main/docs/fundmapper.png) 
 
 
 
