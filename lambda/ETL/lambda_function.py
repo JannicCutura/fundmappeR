@@ -1,73 +1,220 @@
-from __future__ import print_function
+import re
+import os
+import xml.etree.ElementTree as ET
 import pandas as pd
 import boto3
-from datetime import date
-import datetime
+import csv
+from urllib.parse import unquote_plus
 
 s3_client = boto3.client('s3')
 s3 = boto3.resource('s3')
-sns_client = boto3.client('sns')
-topic_arn = 'arn:aws:sns:eu-central-1:540666357414:fundmapper'
-bucket = "fundmapper"
-prefix = "01-MMFLists/"
+
+from xml_2_data import mnfp_2_data
+from xml_2_data import mnfp1_2_data
+from xml_2_data import mnfp2_2_data
+from nmfp_rename_vars import nmfp_rename_vars
 
 
 def lambda_handler(event, context):
-    # define objects we need
-    bucket = s3.Bucket('fundmapper')
-    objs = list(bucket.objects.filter(Prefix=prefix))
-    mmfs_lists = [obj.key for obj in objs]  ## list of all reference files
+    # parse the S3 triggered event
+    record = event['Records'][0]
+    bucket = record['s3']['bucket']['name']
+    key = unquote_plus(record['s3']['object']['key'])
+    # bucket = "fundmapper"
+    # key = "02-RawNMFPs/S000000623/2011-01-07-S000000623.txt"
 
-    for i in range(0, 7):
+    prefix, series_id, filing = key.split("/")
+    print(bucket)
+    print(series_id)
+    print(filing)
+    # store temporarily
+    s3_client.download_file(bucket, key, "/tmp/" + series_id + "_" + filing + ".txt")
+    s3.Object(bucket, key).delete()
+    # read
+    filing = open("/tmp/" + series_id + "_" + filing + ".txt", 'r').read()
+    filing = filing.replace(":", "")
+    filing_type = re.search("<TYPE>(.*)\n", filing).group(1)
+    filing_date = int(re.sub("[^0-9]", "", re.search("CONFORMED PERIOD OF REPORT(.*)\n", filing).group(1))[0:6])
+    filing_year = int(re.sub("[^0-9]", "", re.search("CONFORMED PERIOD OF REPORT(.*)\n", filing).group(1))[0:4])
+    filing = (filing.replace("\n", "")
+              .replace(' xmlns="http//www.sec.gov/edgar/nmfpsecurities"', '')
+              .replace(' xmlns="http//www.sec.gov/edgar/nmfpfund"', ""))
+    print("convert")
+    if filing_type in ["N-MFP", "N-MFP/A"]:
+        series_df, class_df, holdings, all_collateral = mnfp_2_data(filing)
+        series_df, class_df, holdings, all_collateral = nmfp_rename_vars(filing_type, series_df, class_df, holdings,
+                                                                         all_collateral)
 
-        mdate = date.today() - i * datetime.timedelta(days=30)
-        mdate = mdate.strftime("%Y-%m")
-        print(mdate)
+    if filing_type in ["N-MFP1", "N-MFP1/A"]:
+        series_df, class_df, holdings, all_collateral = mnfp1_2_data(filing)
 
-        if f"{prefix}mmf-{mdate}.csv" not in mmfs_lists:
-            print(f"trying {prefix}mmf-{mdate}.csv")
-            # download new file and store to s3
-            try:
-                # read from SEC website
-                df = pd.read_csv(
-                    f"https://www.sec.gov/files/investment/data/other/money-market-fund-information/mmf-{mdate}.csv")
+    if filing_type in ["N-MFP2", "N-MFP2/A"]:
+        series_df, class_df, holdings, all_collateral = mnfp2_2_data(filing)
 
-                # save vector of IDs
-                ids = set(df.series_id.tolist())
+    # drop , from all fields, GLUE doesn't get it seems...
+    series_df.replace({",": " "}, regex=True, inplace=True)
+    class_df.replace({",": " "}, regex=True, inplace=True)
+    holdings.replace({",": " "}, regex=True, inplace=True)
+    all_collateral.replace({",": " "}, regex=True, inplace=True)
 
-                # store locally
-                df.to_csv(f'/tmp/mmf-{mdate}.csv')
+    # add date
+    series_df['date'], class_df['date'], holdings['date'], all_collateral[
+        'date'] = filing_date, filing_date, filing_date, filing_date
 
-                # save new version to S3
-                s3_client.upload_file(f'/tmp/mmf-{mdate}.csv', "fundmapper", f"01-MMFLists/mmf-{mdate}.csv")
+    # add filing type
+    series_df['filing_type'], class_df['filing_type'], holdings['filing_type'], all_collateral[
+        'filing_type'] = filing_type, filing_type, filing_type, filing_type,
 
-                # send message
-                sns_client.publish(TopicArn=topic_arn,
-                                   Message="Found a new list, mmf-" + mdate + ".csv; processed and downloaded",
-                                   Subject='Downloaded new report')
+    # add series id
+    series_df['series_id'], class_df['series_id'], holdings['series_id'], all_collateral[
+        'series_id'] = series_id, series_id, series_id, series_id
 
-                # read existing ids
-                series_ids = s3.get_object(Bucket="fundmapper", Key="series_ids.csv")
-                series_ids = set(pd.read_csv(series_ids['Body']).series_ids.tolist())
-                n_oldids = len(series_ids)
-                series_ids = series_ids.union(ids)
+    # holdings
+    holdings_str_columns = ['filing_type', 'repurchaseAgreement', 'securityDemandFeatureFlag',
+                            'guarantorList', 'InvestmentIdentifier', 'NRSRO',
+                            'isFundTreatingAsAcquisitionUnderlyingSecurities',
+                            'finalLegalInvestmentMaturityDate', 'cik', 'weeklyLiquidAssetSecurityFlag', 'rating',
+                            'investmentCategory', 'repurchaseAgreementList', 'dailyLiquidAssetSecurityFlag',
+                            'securityCategorizedAtLevel3Flag', 'CUSIPMember', 'investmentMaturityDateWAM',
+                            'ISINId', 'LEIID', 'titleOfIssuer', 'securityEnhancementsFlag', 'InvestmentTypeDomain',
+                            'securityGuaranteeFlag', 'fundAcqstnUndrlyngSecurityFlag',
+                            'securityEligibilityFlag', 'otherUniqueId', 'demandFeatureIssuerList', 'nameOfIssuer',
+                            'illiquidSecurityFlag', 'series_id']
+    holdings_float_columns = ['yieldOfTheSecurityAsOfReportingDate', 'investmentMaturityDateWAL',
+                              'AvailableForSaleSecuritiesAmortizedCost',
+                              'includingValueOfAnySponsorSupport', 'excludingValueOfAnySponsorSupport',
+                              'InvestmentOwnedBalancePrincipalAmount', 'percentageOfMoneyMarketFundNetAssets', ]
+    holdings_int_columns = ['date', 'issuer_number']
+    holdings_columns = holdings_str_columns + holdings_float_columns + holdings_int_columns
 
-                if len(series_ids) > n_oldids:
-                    # prepare a new file to be saved
-                    series_ids = pd.DataFrame({"series_ids": list(series_ids)})
+    holdings_data = pd.DataFrame(columns=holdings_columns)
+    holdings_data = holdings_data.append(holdings)
+    del holdings
 
-                    # store locally
-                    series_ids.to_csv("/tmp/series_ids.csv")
+    # collateral
+    collateral_str_columns = ['ctgryInvestmentsRprsntsCollateral', 'filing_type', 'LEIID',
+                              'principalAmountToTheNearestCent',
+                              'maturityDate', 'series_id', 'nameOfCollateralIssuer']
+    collateral_int_columns = ['issuer_number', 'date']
+    collateral_float_columns = ['couponOrYield', 'valueOfCollateralToTheNearestCent',
+                                'AssetsSoldUnderAgreementsToRepurchaseCarryingAmounts',
+                                'CashCollateralForBorrowedSecurities']
+    collateral_columns = collateral_str_columns + collateral_int_columns + collateral_float_columns
 
-                    # upload to S3
-                    s3_client.upload_file("/tmp/series_ids.csv", "fundmapper", "series_ids.csv")
-                    sns_client.publish(TopicArn=topic_arn,
-                                       Message="Found a new list, mmf-" + mdate + ".csv; processed and downloaded and a new ID is found.",
-                                       Subject='A new fund was found!')
+    collateral_data = pd.DataFrame(columns=collateral_columns)
+    collateral_data = collateral_data.append(all_collateral)
+    del all_collateral
 
-            except:
-                print("None found")
+    # series
+    series_str_columns = ['subAdviserList', 'filing_type', 'fundExemptRetailFlag', 'ContainedFileInformationFileNumber',
+                          'transferAgent', 'adviser', 'investmentAdviserList',
+                          'dateCalculatedFornetValuePerShareIncludingCapitalSupportAgreement', 'transferAgentList',
+                          'masterFundFlag', 'seriesFundInsuCmpnySepAccntFlag',
+                          'dateCalculatedFornetValuePerShareExcludingCapitalSupportAgreement', 'feederFundFlag',
+                          'InvestmentTypeDomain', 'administratorList', 'series_id', 'subAdviser', 'indpPubAccountant']
+    series_float_columns = ['totalValueDailyLiquidAssets_fridayDay3', 'averageLifeMaturity',
+                            'totalValueWeeklyLiquidAssets_fridayWeek2', 'percentageDailyLiquidAssets_fridayDay4',
+                            'percentageWeeklyLiquidAssets_fridayWeek1', 'independentPublicAccountant',
+                            'totalValueDailyLiquidAssets_fridayDay1', 'percentageWeeklyLiquidAssets_fridayWeek2',
+                            'netAssetOfSeries', 'averagePortfolioMaturity', 'totalValueOtherAssets',
+                            'AvailableForSaleSecuritiesAmortizedCost',
+                            'netValuePerShareIncludingCapitalSupportAgreement', 'moneyMarketFundCategory',
+                            'totalValueDailyLiquidAssets_fridayDay4', 'sevenDayGrossYield', 'securitiesActFileNumber',
+                            'numberOfSharesOutstanding', 'netAssetValue_fridayWeek3',
+                            'percentageDailyLiquidAssets_fridayDay3', 'percentageDailyLiquidAssets_fridayDay2',
+                            'netValuePerShareExcludingCapitalSupportAgreement', 'totalValueLiabilities',
+                            'netAssetValue_fridayWeek2', 'percentageWeeklyLiquidAssets_fridayWeek3',
+                            'totalValuePortfolioSecurities', 'totalValueWeeklyLiquidAssets_fridayWeek3',
+                            'percentageWeeklyLiquidAssets_fridayWeek4', 'totalValueWeeklyLiquidAssets_fridayWeek4',
+                            'stablePricePerShare', 'cash', 'netAssetValue_fridayWeek4',
+                            'amortizedCostPortfolioSecurities', 'totalValueDailyLiquidAssets_fridayDay2',
+                            'netAssetValue_fridayWeek1', 'totalValueWeeklyLiquidAssets_fridayWeek1',
+                            'percentageDailyLiquidAssets_fridayDay1']
+    series_int_columns = ['date']
+    series_columns = series_str_columns + series_float_columns + series_int_columns
 
-    return "This is the end"
+    series_data = pd.DataFrame(columns=series_columns)
+    series_data = series_data.append(series_df)
+    del series_df
 
+    class_str_columns = ['series_id', 'classesId', 'personPayForFundFlag', 'filing_type', 'nameOfPersonDescExpensePay']
+    class_int_columns = ['date']
+    class_float_columns = ['fridayWeek1_weeklyGrossRedemptions', 'totalForTheMonthReported_weeklyGrossSubscriptions',
+                           'fridayWeek4_weeklyGrossRedemptions', 'netShareholderFlowActivityForMonthEnded',
+                           'minInitialInvestment', 'totalForTheMonthReported_weeklyGrossRedemptions',
+                           'netAssetValuePerShareIncludingCapitalSupportAgreement', 'netAssetsOfClass',
+                           'fridayWeek1_weeklyGrossSubscriptions', 'fridayWeek2_weeklyGrossRedemptions',
+                           'fridayWeek3_weeklyGrossRedemptions', 'netAssetPerShare', 'numberOfSharesOutstanding',
+                           'netAssetValuePerShareExcludingCapitalSupportAgreement',
+                           'fridayWeek4_weeklyGrossSubscriptions', 'fridayWeek3_weeklyGrossSubscriptions',
+                           'fridayWeek2_weeklyGrossSubscriptions', 'sevenDayNetYield']
+    class_columns = class_str_columns + class_int_columns + class_float_columns
 
+    class_data = pd.DataFrame(columns=class_columns)
+    class_data = class_data.append(class_df)
+    del class_df
+
+    ## convert data types
+    # class data
+    class_data[class_str_columns] = class_data[class_str_columns].astype("string")
+    class_data[class_int_columns] = class_data[class_int_columns].astype(int)
+    class_data[class_float_columns] = class_data[class_float_columns].apply(pd.to_numeric, errors="coerce")
+
+    # series data
+    series_data[series_str_columns] = series_data[series_str_columns].astype("string")
+    series_data[series_float_columns] = series_data[series_float_columns].apply(pd.to_numeric, errors="coerce")
+    series_data[series_int_columns] = series_data[series_int_columns].astype(int)
+
+    # holdings
+    holdings_data[holdings_str_columns] = holdings_data[holdings_str_columns].astype("string")
+    holdings_data[holdings_int_columns] = holdings_data[holdings_int_columns].astype(int)
+    holdings_data[holdings_float_columns] = holdings_data[holdings_float_columns].apply(pd.to_numeric, errors="coerce")
+
+    # collateral
+    collateral_data[collateral_str_columns] = collateral_data[collateral_str_columns].astype("string")
+    collateral_data[collateral_int_columns] = collateral_data[collateral_int_columns].astype(int)
+    collateral_data[collateral_float_columns] = collateral_data[collateral_float_columns].apply(pd.to_numeric,
+                                                                                                errors="coerce")
+
+    # order
+    class_data = class_data[class_columns]
+    series_data = series_data[series_columns]
+    collateral_data = collateral_data[collateral_columns]
+    holdings_data = holdings_data[holdings_columns]
+
+    # add variables, i.e. colaece
+
+    collateral_data["CollateralValue"] = collateral_data['CashCollateralForBorrowedSecurities'].combine_first(
+        collateral_data['valueOfCollateralToTheNearestCent'])
+    holdings_data["Type"] = holdings_data.InvestmentTypeDomain.combine_first(holdings_data.investmentCategory)
+
+    file_format = ".csv"
+    header = True
+
+    if series_data.shape[0] >= 1:
+        series_data.to_csv("/tmp/series_" + series_id + "_" + str(filing_date) + file_format, index=False,
+                           header=header)
+        s3_client.upload_file("/tmp/series_" + series_id + "_" + str(filing_date) + file_format, "fundmapper",
+                              "03-ParsedRecords/series_data/" + str(filing_year) + "/" + series_id + "_" + str(
+                                  filing_date) + file_format)
+
+    if class_data.shape[0] >= 1:
+        class_data.to_csv("/tmp/class_" + series_id + "_" + str(filing_date) + file_format, index=False, header=header)
+        s3_client.upload_file("/tmp/class_" + series_id + "_" + str(filing_date) + file_format, "fundmapper",
+                              "03-ParsedRecords/class_data/" + str(filing_year) + "/" + series_id + "_" + str(
+                                  filing_date) + file_format)
+
+    if holdings_data.shape[0] >= 1:
+        holdings_data.to_csv("/tmp/holdings_" + series_id + "_" + str(filing_date) + file_format, index=False,
+                             header=header)
+        s3_client.upload_file("/tmp/holdings_" + series_id + "_" + str(filing_date) + file_format, "fundmapper",
+                              "03-ParsedRecords/holdings_data/" + str(filing_year) + "/" + series_id + "_" + str(
+                                  filing_date) + file_format)
+
+    if collateral_data.shape[0] >= 1:
+        collateral_data.to_csv("/tmp/collateral_" + series_id + "_" + str(filing_date) + file_format, index=False,
+                               header=header)
+        s3_client.upload_file(f"/tmp/collateral_{series_id}_{filing_date}{file_format}", "fundmapper",
+                              f"03-ParsedRecords/collateral_data/{filing_year}/{series_id}_{filing_date}{file_format}")
+
+    return "Success"
