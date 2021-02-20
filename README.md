@@ -1,5 +1,9 @@
 # fundmappeR [[![](https://github.com/JannicCutura/fundmappeR/blob/main/docs/icons8-map-100.png)](#)](https://icons8.com/icons/set/map)
 
+[<img src="https://github.com/JannicCutura/fundmappeR/blob/main/docs/icons8-map-100.png">](https://icons8.com/icons/set/map)
+
+
+
 [![version](https://img.shields.io/badge/version-1.0.0-success.svg)](#)
 
 
