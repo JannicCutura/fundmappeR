@@ -32,7 +32,17 @@ the data available to the user.
 ## Usage
 
 This project is implemented using Python and R and runs on AWS, leveraging several of its proprietary
-technologies. You can rebuild it using the codes published in this repo or you can access the final tables here.
+technologies. You can rebuild it using the codes published in this repo or you can download the tables directly:
+
+```python
+import pandas as pd
+
+table = ["holdings_data","collateral_data","series_data","class_data"][0]  ## pick one
+date = 201906  ## 201112--today
+df = pd.read_parquet("https://fundmapper.s3.eu-central-1.amazonaws.com/05-FinalTables/{table}/201912/{table}_{date}.parquet")
+
+```
+
 There are four tables available, stored year by year:
 - **Class table**: This table contains data on the individual fund share class. `class_id` and `date` act as primary key.
 - **Series table**: This table contains data on the individual fund (i.e. a series). `series_id` and `date` act as primary key.
