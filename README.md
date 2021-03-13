@@ -37,9 +37,17 @@ technologies. You can rebuild it using the codes published in this repo or you c
 ```python
 import pandas as pd
 
-table = ["holdings_data","collateral_data","series_data","class_data"][0]  ## pick one
+# set s3path
+s3_path = "https://fundmapper.s3.eu-central-1.amazonaws.com/05-FinalTables"
+
+# pick a table
+table = ["holdings_data","collateral_data","series_data","class_data"][0] 
+
+# pick a date 
 date = 201906  ## 201112--today
-df = pd.read_parquet("https://fundmapper.s3.eu-central-1.amazonaws.com/05-FinalTables/{table}/201912/{table}_{date}.parquet")
+
+# read to pandas
+df = pd.read_parquet("{s3_path}/{table}/{date}/{table}_{date}.parquet")
 
 ```
 
