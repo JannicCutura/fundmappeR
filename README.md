@@ -51,7 +51,7 @@ df = pd.read_parquet("{s3_path}/{table}/{date}/{table}_{date}.parquet")
 
 ```
 
-There are four tables available, stored year by year:
+There are four tables available, stored in monthly versions:
 - **Class table**: This table contains data on the individual fund share class. `class_id` and `date` act as primary key.
 - **Series table**: This table contains data on the individual fund (i.e. a series). `series_id` and `date` act as primary key.
 - **Holdings table**: This table contains data on the individual holdings. `class_id`, `date` and `issuer_number` act as primary key.
@@ -59,7 +59,7 @@ There are four tables available, stored year by year:
 
 ![](https://github.com/JannicCutura/fundmappeR/blob/main/docs/database_schema.png)
 
-
+A data dictionary is available here. 
 
 [Chernenko2014]: <https://academic.oup.com/rfs/article-abstract/27/6/1717/1598733?redirectedFrom=fulltext> "Mytitle"
 [Gorton2012]: <https://www.sciencedirect.com/science/article/abs/pii/S0304405X1100081X> "Mytitle"
