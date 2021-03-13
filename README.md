@@ -4,7 +4,7 @@
 
 ## About 
 This repo contains codes to build the `fundmappeR` project, an open source tool that webscraps portfolios
-of money market funds (MMF). MMfs have been at the center of the great financial crisis
+of money market funds (MMF). MMFs have been at the center of the great financial crisis
 ([Chernenko and Sunderam, 2014][Chernenko2014];
 [Gorton and Metrick, 2012][Gorton2012]), the sovereign
 debt crisis ([Corre et. al., 2012][correa2012]) and recently experienced some turmoil during 
@@ -36,8 +36,8 @@ technologies. You can rebuild it using the codes published in this repo or you c
 There are four tables available, stored year by year:
 - **Class table**: This table contains data on the individual fund share class. `class_id` and `date` act as primary key.
 - **Series table**: This table contains data on the individual fund (i.e. a series). `series_id` and `date` act as primary key.
-- **Holdings table**: This table contains data on the individual holdings. 
-- **Collateral table**: This table contains data on the collateral posted for secured items. 
+- **Holdings table**: This table contains data on the individual holdings. `class_id`, `date` and `issuer_number` act as primary key.
+- **Collateral table**: This table contains data on the collateral posted for secured items. `class_id`, `date` and `issuer_number` act as primary key.
 
 ![](https://github.com/JannicCutura/fundmappeR/blob/main/docs/database_schema.png)
 
