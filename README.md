@@ -59,7 +59,7 @@ There are four tables available, stored in monthly versions:
 
 ![](https://github.com/JannicCutura/fundmappeR/blob/main/docs/database_schema.png)
 
-A data dictionary is available here. 
+A data dictionary is available [here](https://github.com/JannicCutura/fundmappeR/blob/main/data_dictionary/data_dictionary.xlsx). 
 
 [Chernenko2014]: <https://academic.oup.com/rfs/article-abstract/27/6/1717/1598733?redirectedFrom=fulltext> "Mytitle"
 [Gorton2012]: <https://www.sciencedirect.com/science/article/abs/pii/S0304405X1100081X> "Mytitle"
