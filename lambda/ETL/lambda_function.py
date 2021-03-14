@@ -17,19 +17,27 @@ from nmfp_rename_vars import nmfp_rename_vars
 
 def lambda_handler(event, context):
     # parse the S3 triggered event
-    record = event['Records'][0]
-    bucket = record['s3']['bucket']['name']
-    key = unquote_plus(record['s3']['object']['key'])
-    # bucket = "fundmapper"
-    # key = "02-RawNMFPs/S000000623/2011-01-07-S000000623.txt"
+    debug = False
+
+    if debug:
+        bucket = "fundmapper"
+        key = "02-RawNMFPs/S000004822/2016-01-08-S000004822.txt"
+    else:
+        record = event['Records'][0]
+        bucket = record['s3']['bucket']['name']
+        key = unquote_plus(record['s3']['object']['key'])
 
     prefix, series_id, filing = key.split("/")
     print(bucket)
     print(series_id)
     print(filing)
     # store temporarily
-    s3_client.download_file(bucket, key, "/tmp/" + series_id + "_" + filing + ".txt")
-    s3.Object(bucket, key).delete()
+    print("download")
+    s3_client.download_file(bucket, key, f"/tmp/{series_id}_{filing}.txt")
+    print("downloaded")
+    (s3.Object(bucket, key)
+     .delete())
+    print("deleted")
     # read
     filing = open("/tmp/" + series_id + "_" + filing + ".txt", 'r').read()
     filing = filing.replace(":", "")

@@ -2,7 +2,52 @@ import pandas as pd
 
 table = "holdings_data"
 date = 201906
-df = pd.read_parquet("https://fundmapper.s3.eu-central-1.amazonaws.com/05-FinalTables/holdings_data/201912/holdings_data_201912.parquet")
+df_aws = pd.read_parquet("https://fundmapper.s3.eu-central-1.amazonaws.com/05-FinalTables/series_data/201601/series_data_201601.parquet")
+
+
+
+
+path = "C:/Users/janni/Dropbox/university/research/RepoCollateralMMFReform"
+
+
+
+Class_data =          pd.read_feather(path = f"{path}/01-data/SEC/06-FinalTables/Class_data.feather")
+Series_data =         pd.read_feather(path = f"{path}/01-data/SEC/06-FinalTables/Series_data.feather")
+Holdings_data =       pd.read_feather(path = f"{path}/01-data/SEC/06-FinalTables/Holdings_data.feather")
+All_collateral_data = pd.read_feather(path = f"{path}/01-data/SEC/06-FinalTables/All_collateral_data.feather")
+
+
+Class_data = Class_data.assign(series_id = lambda x: x.series_year_filingmonth.str.slice(0,10),
+                               year      = lambda x: x.series_year_filingmonth.str.slice(11,15),
+                               month     = lambda x: x.series_year_filingmonth.str.slice(16,18))
+
+Series_data = Series_data.assign(series_id = lambda x: x.series_year_filingmonth.str.slice(0,10),
+                               year      = lambda x: x.series_year_filingmonth.str.slice(11,15),
+                               month     = lambda x: x.series_year_filingmonth.str.slice(16,18))
+
+
+df = Series_data.query("year == '2016' & month == '01'")
+series_ids = df.series_id.unique()
+
+df_aws_seriesids = df_aws.series_id.unique()
+
+set(df_aws_seriesids).difference(series_ids)
+set(series_ids).difference(df_aws_seriesids)
+
+import boto3
+import os
+import csv
+from urllib.parse import unquote_plus
+
+s3_client = boto3.client('s3')
+s3 = boto3.resource('s3')
+
+bucket = "fundmapper"
+key = "02-RawNMFPs/S000004822/2016-01-08-S000004822.txt"
+
+prefix, series_id, filing = key.split("/")
+
+s3_client.download_file(bucket, key, os.getcwd()+"/" + series_id + "_" + filing + ".txt")
 
 
 
