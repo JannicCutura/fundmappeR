@@ -31,5 +31,3 @@ def lambda_handler(event, context):
     (s3_resource.Object(bucket, key)
      .delete())
 
-
-

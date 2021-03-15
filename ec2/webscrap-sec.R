@@ -61,7 +61,7 @@ for (series_id in series_ids) {
 ## get legacy documents
 start_time <- Sys.time()
 counter = 1
-for (series_id in series_ids[10:20]) {
+for (series_id in series_ids) {
   print(paste0("This is for fund (", series_id,"), ", counter, " of ", length(series_ids),  sep=""))
   counter = counter + 1
   for (year in seq(2011,2020,1)) {

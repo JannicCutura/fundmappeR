@@ -21,7 +21,7 @@ def lambda_handler(event, context):
 
     if debug:
         bucket = "fundmapper"
-        key = "02-RawNMFPs/S000004822/2016-01-08-S000004822.txt"
+        key = "02-RawNMFPs/S000007665/2011-01-06-S000007665.txt"
     else:
         record = event['Records'][0]
         bucket = record['s3']['bucket']['name']
@@ -31,12 +31,13 @@ def lambda_handler(event, context):
     print(bucket)
     print(series_id)
     print(filing)
+    print(key)
     # store temporarily
     print("download")
     s3_client.download_file(bucket, key, f"/tmp/{series_id}_{filing}.txt")
     print("downloaded")
-    (s3.Object(bucket, key)
-     .delete())
+    # (s3.Object(bucket, key)
+    #   .delete())
     print("deleted")
     # read
     filing = open("/tmp/" + series_id + "_" + filing + ".txt", 'r').read()

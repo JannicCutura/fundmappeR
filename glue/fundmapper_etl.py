@@ -23,6 +23,7 @@ def produce_tables(date, dataset):
 
     """
     # get tables from Glue Table
+    print(f"Working on {dataset} in {date}")
     db_name = "fundmapper"
     tbl_name = dataset
 
@@ -31,29 +32,50 @@ def produce_tables(date, dataset):
 
     # Read data into a DynamicFrame using the Data Catalog metadata
     dyf = glueContext.create_dynamic_frame.from_catalog(database=db_name, table_name=tbl_name)
+    print(f"  - Read in")
 
     # turn to spark dataframe
     df = dyf.toDF()
+    print(f"  - convert to spark df")
 
     # keep only current date
     df = df.where(f"date = {date}")
+    print(f"  - filtered")
 
     # reconvert to dynamic frame
-    dyf = fromDF(df, glueContext, tbl_name)
+    dyf = DynamicFrame.fromDF(df, glueContext, tbl_name)
+    print(f"  - converted back")
 
     # repartition to spark puts everything in one file
     dyf = dyf.repartition(1)
+    print(f"  - repartitioned")
 
     # Write it out in Parquet
-    glueContext.write_dynamic_frame.from_options(frame=df, connection_type="s3",
+    glueContext.write_dynamic_frame.from_options(frame=dyf, connection_type="s3",
                                                  connection_options={"path": output_dir}, format="parquet")
+
+    # print some profress report
+    print(f"  - Done with {dataset} in {date}")
+    print(" ")
 
 
 # Data Catalog: database and table name
 datasets = ["holdings_data", "collateral_data", "class_data", "series_data"]
-dataset = "series_data"
-date = 202002
-produce_tables(date, dataset)
+dates = ['201601']
+# dataset = "series_data"
+# date = '202002'
+
+
+for date in dates:
+    for dataset in datasets:
+        produce_tables(date, dataset)
+
+
+
+
+
+
+
 
 
 
