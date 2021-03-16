@@ -47,7 +47,7 @@ table = ["holdings_data","collateral_data","series_data","class_data"][0]
 date = 201906  ## 201112--today
 
 # read to pandas
-df = pd.read_parquet("{s3_path}/{table}/{date}/{table}_{date}.parquet")
+df = pd.read_parquet(f"{s3_path}/{table}/{date}/{table}_{date}.parquet")
 
 ```
 
