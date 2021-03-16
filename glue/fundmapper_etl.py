@@ -6,8 +6,25 @@ from awsglue.dynamicframe import DynamicFrame
 from awsglue.job import Job
 from pyspark.sql.functions import udf
 from pyspark.sql.types import StringType
+from datetime import datetime
 
 glueContext = GlueContext(SparkContext.getOrCreate())
+
+
+def my_months(date, last_n="All"):
+    current_year = date[0:4]
+    current_month = date[5:6]
+    my_months_list = ["201212"]  # first one
+    for year in range(2013, int(current_year) + 1):
+        for month in ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]:
+            loopdate = str(year) + month
+            if loopdate <= date:
+                my_months_list.append(loopdate)
+            else:
+                if last_n == "All":
+                    return my_months_list
+                else:
+                    return my_months_list[-last_n:]
 
 
 def produce_tables(date, dataset):
@@ -31,7 +48,8 @@ def produce_tables(date, dataset):
     output_dir = f"s3://fundmapper/04-StagingTables/{dataset}/{date}/"
 
     # Read data into a DynamicFrame using the Data Catalog metadata
-    dyf = glueContext.create_dynamic_frame.from_catalog(database=db_name, table_name=tbl_name)
+    dyf = (glueContext.create_dynamic_frame.from_catalog(database=db_name, table_name=tbl_name,
+                                                         additional_options={'useS3ListImplementation': True}))
     print(f"  - Read in")
 
     # turn to spark dataframe
@@ -61,7 +79,8 @@ def produce_tables(date, dataset):
 
 # Data Catalog: database and table name
 datasets = ["holdings_data", "collateral_data", "class_data", "series_data"]
-dates = ['201601']
+today = datetime.today().strftime('%Y%m')  ## todays month as YYYYMM
+dates = my_months(today, last_n=61)
 # dataset = "series_data"
 # date = '202002'
 

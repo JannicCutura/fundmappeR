@@ -19,11 +19,15 @@ All_collateral_data = pd.read_feather(path = f"{path}/01-data/SEC/06-FinalTables
 
 Class_data = Class_data.assign(series_id = lambda x: x.series_year_filingmonth.str.slice(0,10),
                                year      = lambda x: x.series_year_filingmonth.str.slice(11,15),
-                               month     = lambda x: x.series_year_filingmonth.str.slice(16,18))
+                               month     = lambda x: x.series_year_filingmonth.str.slice(16,18),
+                               date      = lambda x: x.year +x.month)
 
 Series_data = Series_data.assign(series_id = lambda x: x.series_year_filingmonth.str.slice(0,10),
                                year      = lambda x: x.series_year_filingmonth.str.slice(11,15),
                                month     = lambda x: x.series_year_filingmonth.str.slice(16,18))
+
+
+resss= Class_data.groupby(["date"]).size()
 
 
 df = Series_data.query("year == '2016' & month == '01'")
@@ -49,5 +53,25 @@ prefix, series_id, filing = key.split("/")
 
 s3_client.download_file(bucket, key, os.getcwd()+"/" + series_id + "_" + filing + ".txt")
 
+
+def my_months(date, last_n="All"):
+
+    current_year = date[0:4]
+    current_month = date[5:6]
+    my_months_list = ["201212"] # first one
+    for year in range(2013, int(current_year)+1):
+        for month in ["01","02","03","04","05","06","07","08","09","10","11","12"]:
+            loopdate = str(year)+month
+            if loopdate <= date:
+                my_months_list.append(loopdate)
+            else:
+                if last_n =="All":
+                    return my_months_list
+                else:
+                    return my_months_list[-last_n:]
+
+
+
+my_months("202103",61)
 
 
