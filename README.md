@@ -41,7 +41,8 @@ import pandas as pd
 s3_path = "https://fundmapper.s3.eu-central-1.amazonaws.com/05-FinalTables"
 
 # pick a table
-table = ["holdings_data","collateral_data","series_data","class_data"][0] 
+tables = ["holdings_data","collateral_data","series_data","class_data"]
+table = tables[0] ## 0-3
 
 # pick a date 
 date = 201906  ## 201112--today
