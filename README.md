@@ -1,6 +1,7 @@
 # fundmappeR [<img src="https://github.com/JannicCutura/fundmappeR/blob/main/docs/icons8-map-100.png">](https://icons8.com/icons/set/map)
 
 [![version](https://img.shields.io/badge/version-1.0.0-success.svg)](#)
+> **Note**: The fundmapper project is no longer maintained as the SEC no longer allows automated parsing of it's reports. 
 
 ## About 
 This repo contains codes to build the `fundmappeR` project, an open source tool that webscraps portfolios
